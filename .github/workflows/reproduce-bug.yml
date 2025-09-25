@@ -1,0 +1,58 @@
+name: Bug Reproduction - Manual Target Install
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  manual-target-install:
+    runs-on: ubuntu-latest
+    name: "Method 1: Manual rustup target add (should work)"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Zig
+        uses: mlugg/setup-zig@v1
+        with:
+          version: 0.15.1
+          use-cache: false
+
+      - name: Setup Rust (without ARM64 target)
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-lambda
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-lambda
+
+      - name: Show initial state
+        run: |
+          echo "=== Initial State ==="
+          echo "Rust targets installed:"
+          rustup target list --installed
+          echo "Cargo version: $(cargo --version)"
+          echo "Zig version: $(zig version)"
+          echo "Cargo lambda version: $(cargo lambda --version)"
+
+      - name: Manually install ARM64 target first
+        run: |
+          echo "=== Installing aarch64-unknown-linux-gnu target manually ==="
+          rustup target add aarch64-unknown-linux-gnu
+
+      - name: Verify target installation
+        run: |
+          echo "Targets after manual installation:"
+          rustup target list --installed
+
+      - name: Build with manually installed target
+        run: |
+          echo "=== Building with manually installed target ==="
+          cargo lambda build --release --arm64
+
+      - name: Verify build success
+        run: |
+          echo "=== Build Results ==="
+          find target -name "bootstrap*" -type f || echo "No bootstrap files found"

@@ -1,0 +1,55 @@
+name: Bug Reproduction - DTolnay Target Install
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  dtolnay-target-install:
+    runs-on: ubuntu-latest
+    name: "Method 2: DTolnay action target install (should also work)"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Zig
+        uses: mlugg/setup-zig@v1
+        with:
+          version: 0.15.1
+          use-cache: false
+
+      - name: Setup Rust with ARM64 target via DTolnay action
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-unknown-linux-gnu
+
+      - name: Install cargo-lambda
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-lambda
+
+      - name: Show initial state
+        run: |
+          echo "=== Initial State ==="
+          echo "Rust targets installed:"
+          rustup target list --installed
+          echo "Cargo version: $(cargo --version)"
+          echo "Zig version: $(zig version)"
+          echo "Cargo lambda version: $(cargo lambda --version)"
+
+      - name: Verify target was installed by DTolnay action
+        run: |
+          echo "=== Verifying aarch64-unknown-linux-gnu target installation ==="
+          rustup target list --installed | grep aarch64-unknown-linux-gnu || echo "Target NOT found!"
+
+      - name: Build with DTolnay-installed target
+        run: |
+          echo "=== Building with DTolnay-installed target ==="
+          cargo lambda build --release --arm64
+
+      - name: Verify build success
+        run: |
+          echo "=== Build Results ==="
+          find target -name "bootstrap*" -type f || echo "No bootstrap files found"
