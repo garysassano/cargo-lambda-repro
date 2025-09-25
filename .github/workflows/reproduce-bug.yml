@@ -1,4 +1,4 @@
-name: Bug Reproduction - Manual Target Install
+name: Bug Reproduction - Auto Target Install
 
 on:
   workflow_dispatch:
@@ -6,9 +6,9 @@ on:
     branches: [main]
 
 jobs:
-  manual-target-install:
+  auto-target-install:
     runs-on: ubuntu-latest
-    name: "Method 1: Manual rustup target add (should work)"
+    name: "Method 2: Let cargo-lambda auto-install target (may fail - this is the bug)"
 
     steps:
       - name: Checkout code
@@ -37,22 +37,35 @@ jobs:
           echo "Zig version: $(zig version)"
           echo "Cargo lambda version: $(cargo lambda --version)"
 
-      - name: Manually install ARM64 target first
+      - name: Verify no ARM64 target initially
         run: |
-          echo "=== Installing aarch64-unknown-linux-gnu target manually ==="
-          rustup target add aarch64-unknown-linux-gnu
+          echo "=== Verifying ARM64 target is NOT pre-installed ==="
+          if rustup target list --installed | grep -q aarch64-unknown-linux-gnu; then
+            echo "❌ ARM64 target is already installed - this won't reproduce the bug"
+            exit 1
+          else
+            echo "✅ ARM64 target not installed - good for reproducing bug"
+          fi
 
-      - name: Verify target installation
+      - name: Build and let cargo-lambda auto-install target (may fail)
         run: |
-          echo "Targets after manual installation:"
-          rustup target list --installed
-
-      - name: Build with manually installed target
-        run: |
-          echo "=== Building with manually installed target ==="
+          echo "=== Building and letting cargo-lambda auto-install target ==="
+          echo "This should demonstrate the bug where cargo-lambda:"
+          echo "1. Detects missing aarch64-unknown-linux-gnu target"
+          echo "2. Installs it automatically"
+          echo "3. But then fails to use it properly"
           cargo lambda build --release --arm64
+        continue-on-error: true
 
-      - name: Verify build success
+      - name: Check what happened
         run: |
-          echo "=== Build Results ==="
+          echo "=== Post-Build Analysis ==="
+          echo "Targets after build attempt:"
+          rustup target list --installed
+          if rustup target list --installed | grep -q aarch64-unknown-linux-gnu; then
+            echo "✅ ARM64 target WAS auto-installed by cargo-lambda"
+          else
+            echo "❌ ARM64 target was NOT installed"
+          fi
+          echo "Build artifacts:"
           find target -name "bootstrap*" -type f || echo "No bootstrap files found"

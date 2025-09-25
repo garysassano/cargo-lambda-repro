@@ -1,4 +1,4 @@
-name: Bug Reproduction - DTolnay Target Install
+name: Bug Reproduction - Rustup Target Add
 
 on:
   workflow_dispatch:
@@ -6,9 +6,9 @@ on:
     branches: [main]
 
 jobs:
-  dtolnay-target-install:
+  rustup-target-add:
     runs-on: ubuntu-latest
-    name: "Method 2: DTolnay action target install (should also work)"
+    name: "Method 1: Manual rustup target add (should work)"
 
     steps:
       - name: Checkout code
@@ -20,10 +20,8 @@ jobs:
           version: 0.14.0
           use-cache: false
 
-      - name: Setup Rust with ARM64 target via DTolnay action
+      - name: Setup Rust (without ARM64 target)
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: aarch64-unknown-linux-gnu
 
       - name: Install cargo-lambda
         uses: taiki-e/install-action@v2
@@ -39,14 +37,19 @@ jobs:
           echo "Zig version: $(zig version)"
           echo "Cargo lambda version: $(cargo lambda --version)"
 
-      - name: Verify target was installed by DTolnay action
-        run: |
-          echo "=== Verifying aarch64-unknown-linux-gnu target installation ==="
-          rustup target list --installed | grep aarch64-unknown-linux-gnu || echo "Target NOT found!"
+      # - name: Manually add ARM64 target with rustup
+      #   run: |
+      #     echo "=== Manually adding aarch64-unknown-linux-gnu target ==="
+      #     rustup target add aarch64-unknown-linux-gnu
 
-      - name: Build with DTolnay-installed target
+      # - name: Verify target was added
+      #   run: |
+      #     echo "=== Verifying aarch64-unknown-linux-gnu target installation ==="
+      #     rustup target list --installed | grep aarch64-unknown-linux-gnu || echo "Target NOT found!"
+
+      - name: Build with manually added target
         run: |
-          echo "=== Building with DTolnay-installed target ==="
+          echo "=== Building with manually added target ==="
           cargo lambda build --release --arm64
 
       - name: Verify build success
