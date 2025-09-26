@@ -68,22 +68,24 @@ jobs:
           echo "Zig version: $(zig version)"
           echo "Cargo lambda version: $(cargo lambda --version)"
 
-      # - name: Manually add ARM64 target with rustup
-      #   run: |
-      #     echo "=== Manually adding aarch64-unknown-linux-gnu target ==="
-      #     rustup target add aarch64-unknown-linux-gnu
+      - name: Manually add ARM64 target with rustup
+        run: |
+          echo "=== Manually adding aarch64-unknown-linux-gnu target ==="
+          rustup target add aarch64-unknown-linux-gnu
 
-      # - name: Verify target was added
-      #   run: |
-      #     echo "=== Verifying aarch64-unknown-linux-gnu target installation ==="
-      #     rustup target list --installed | grep aarch64-unknown-linux-gnu || echo "Target NOT found!"
+      - name: Verify target was added
+        run: |
+          echo "=== Verifying aarch64-unknown-linux-gnu target installation ==="
+          rustup target list --installed | grep aarch64-unknown-linux-gnu || echo "Target NOT found!"
 
       - name: Build with manually added target
+        working-directory: lambda-function
         run: |
           echo "=== Building with manually added target ==="
           cargo lambda build --release --arm64
 
       - name: Verify build success
+        working-directory: lambda-function
         run: |
           echo "=== Build Results ==="
           find target -name "bootstrap*" -type f || echo "No bootstrap files found"

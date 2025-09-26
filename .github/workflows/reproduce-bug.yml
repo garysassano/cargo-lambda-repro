@@ -79,6 +79,7 @@ jobs:
           fi
 
       - name: Build and let cargo-lambda auto-install target (may fail)
+        working-directory: lambda-function
         run: |
           echo "=== Building and letting cargo-lambda auto-install target ==="
           echo "This should demonstrate the bug where cargo-lambda:"
@@ -89,6 +90,7 @@ jobs:
         continue-on-error: true
 
       - name: Check what happened
+        working-directory: lambda-function
         run: |
           echo "=== Post-Build Analysis ==="
           echo "Targets after build attempt:"
