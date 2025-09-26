@@ -14,6 +14,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
+      - name: Show initial rustup state
+        run: |
+          echo "=== Rustup Initial State (before any setup) ==="
+          rustup --version || echo "rustup not found"
+          rustup show || echo "rustup show failed"
+          rustup target list --installed || echo "rustup target list failed"
+          echo ""
+
       - name: Setup Zig
         uses: mlugg/setup-zig@v1
         with:
