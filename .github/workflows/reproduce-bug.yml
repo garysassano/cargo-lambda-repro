@@ -19,7 +19,9 @@ jobs:
           echo "=== Rustup Initial State (before any setup) ==="
           rustup --version || echo "rustup not found"
           rustup show || echo "rustup show failed"
+          rustup toolchain list || echo "rustup toolchain list failed"
           rustup target list --installed || echo "rustup target list failed"
+          echo "Default toolchain: $(rustup default)" || echo "no default toolchain"
           echo ""
 
       - name: Setup Zig
@@ -31,10 +33,31 @@ jobs:
       - name: Setup Rust (without ARM64 target)
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Show rustup state after Rust setup
+        run: |
+          echo "=== Rustup State After Rust Setup ==="
+          rustup show
+          rustup toolchain list
+          rustup target list --installed
+          echo "Default toolchain: $(rustup default)"
+          echo "Active toolchain: $(rustup show active-toolchain)"
+          echo ""
+
       - name: Install cargo-lambda
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-lambda
+
+      - name: Show rustup state after cargo-lambda install
+        run: |
+          echo "=== Rustup State After cargo-lambda Install ==="
+          rustup show
+          rustup toolchain list
+          rustup target list --installed
+          echo "Default toolchain: $(rustup default)"
+          echo "Active toolchain: $(rustup show active-toolchain)"
+          echo "cargo-lambda location: $(which cargo-lambda)"
+          echo ""
 
       - name: Show initial state
         run: |
